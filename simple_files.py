@@ -1,4 +1,5 @@
 import os
+import pandas
 import yaml
 
 
@@ -14,15 +15,18 @@ class FileHolder(object):
         self.path = prev_path + (self,)
         self.is_dir = os.path.isdir(self.file_path)
 
-
         self._cache = {}
         if self.next_type is None:
             self.next_type = type(self)
 
     def create_sub_obj(self, item):
-        if os.path.isfile(self.file_path + ".yaml"):
-            yamlDict = yaml.load(open(self.file_path + ".yaml"))
-            return yamlDict[item]
+        if hasattr(self,'yaml_dict'):
+            return self.yaml_dict[item]
+        elif os.path.isfile(self.file_path + ".yaml"):
+            self.yaml_dict = yaml.load(open(self.file_path + ".yaml"))
+            return self.yaml_dict[item]
+        elif os.path.isfile(os.path.join(self.file_path, item) + ".csv"):
+            return pandas.DataFrame.from_csv(os.path.join(self.file_path, item) + ".csv")
 
         return self.next_type(item, *self.path)
 
@@ -44,9 +48,12 @@ class FileHolder(object):
         self._cache[item] = ret
         return ret
     def __getattr__(self, item):
-        ret = self.create_sub_obj(item)
-        setattr(self,item,ret)
-        return ret
+        if item not in ['yaml_dict'] and not item[0] == "_":
+            ret = self.create_sub_obj(item)
+            setattr(self, item, ret)
+            return ret
+        else:
+            raise AttributeError
 
     def __repr__(self, *args, **kwargs):
         return "< {path} - {value} ".format(path = ",".join(x.name for x in self.path), value= self.value)
