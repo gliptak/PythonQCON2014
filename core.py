@@ -6,8 +6,9 @@ class Asset(object):
         self.env = env
         self.datatype = datatype
         self.name = name
+
     def __getattr__(self, item):
-        self.curve(self.env,self.datatype,self.name,item)
+        self.curve(self.env, self.datatype, self.name, item)
 
 
 class Datatype(object):
@@ -16,15 +17,17 @@ class Datatype(object):
     def __init__(self, env, name):
         self.env = env
         self.name = name
+
     def __getitem__(self, item):
         ret = self.asset(self.env, self.datatype, item)
-        setattr(self,item,ret)
+        setattr(self, item, ret)
         return ret
 
 
 class Env(object):
     datatype = Datatype
+
     def __getattr__(self, item):
-        ret = self.datatype(self,item)
-        setattr(self,item,ret)
+        ret = self.datatype(self, item)
+        setattr(self, item, ret)
         return ret
