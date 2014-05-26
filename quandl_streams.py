@@ -4,22 +4,31 @@ from itertools import chain
 import Quandl
 
 
-class QuandleAsset(object):
-    def __init__(self, quandle_name, authtoken=None):
+class QuandlAsset(object):
+    def __init__(self, quandl_name, authtoken=None):
         """Uses the Quandl service to get live data
 
-        :type quandle_name: str - an asset name assigned by Quandl
+        :type quandl_name: str - an asset name assigned by Quandl
         :type authtoken: builtins.NoneType - Quandl auth token if available
         """
-        self.value = Quandl.get(quandle_name, authtoken=authtoken)
+        self._authtoken = authtoken
+        self.quandl_name = quandl_name
+        self._value = None
 
     def __getattr__(self, item):
         """Redirect any unknown attribute access to the data retrieved from Quandl, this constitutes a complete proxy
         """
         return getattr(self.value, item)
 
+    @property
+    def value(self):
+        if self._value is not None:
+            return self._value
+        self._value = Quandl.get(self.quandl_name, authtoken=self._authtoken)
+        return self._value
 
-def name_to_code(query='USD', authtoken=None):
+
+def search_quandl(query, authtoken=None):
     currPage = True
     quandlAll = []
     pageNo = 0
@@ -27,8 +36,13 @@ def name_to_code(query='USD', authtoken=None):
         currPage = Quandl.search(query, source="QUANDL", prints=False, page=pageNo, authtoken=authtoken)
         quandlAll.append(currPage)
         pageNo += 1
+    return chain(*quandlAll)
+
+
+def name_to_code(query='USD', authtoken=None):
+    quandlAll = search_quandl(query, authtoken)
     return {"%s_%s" % (curve['code'][7:10].lower(), curve['code'][10:].lower()): curve['code'] for curve in
-            chain(*quandlAll)}
+            quandlAll}
 
 
 def dl_quandl(query="USD", authtoken=None):
@@ -41,7 +55,7 @@ def dl_quandl(query="USD", authtoken=None):
 
 
 if __name__ == "__main__":
-    test = QuandleAsset("GOOG/NYSE_ERO")
+    test = QuandlAsset("GOOG/NYSE_ERO")
     print(test)
     print(test.value)
     print(test.Close['2009-05-14'])

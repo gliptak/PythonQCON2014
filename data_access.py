@@ -1,5 +1,5 @@
 from dingus import Dingus
-from quandle_streams import QuandleAsset
+from quandl_streams import QuandlAsset
 from simple_files import FileHolder
 
 __author__ = 'andriod'
@@ -15,8 +15,8 @@ def get_file(coll_name):
 
 def get_live(coll_name):
     env = FileHolder(coll_name)
-    env.fx.usd_eur = QuandleAsset("GOOG/NYSE_ERO")
-    env.fx.usd_jpy = QuandleAsset("QUANDL/USDJPY")
+    env.fx.usd_eur = QuandlAsset("GOOG/NYSE_ERO")
+    env.fx.usd_jpy = QuandlAsset("QUANDL/USDJPY")
     return env
 
 
