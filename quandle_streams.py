@@ -11,7 +11,6 @@ class QuandleAsset(object):
         :type quandle_name: str - an asset name assigned by Quandl
         :type authtoken: builtins.NoneType - Quandl auth token if available
         """
-        super().__init__()
         self.value = Quandl.get(quandle_name, authtoken=authtoken)
 
     def __getattr__(self, item):
