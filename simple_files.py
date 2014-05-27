@@ -1,3 +1,4 @@
+from collections import MutableMapping
 import os
 
 import pandas
@@ -7,7 +8,7 @@ import yaml
 __author__ = 'andriod'
 
 
-class FileHolder(object):
+class FileHolder(MutableMapping, object):
     next_type = None
 
     def __init__(self, name, *prev_path):
@@ -19,6 +20,7 @@ class FileHolder(object):
         self.name = name
         self.path = prev_path + (self,)
         self.is_dir = os.path.isdir(self.file_path)
+        self._yaml_obj = None
 
         self._cache = {}
         if self.next_type is None:
@@ -42,9 +44,7 @@ class FileHolder(object):
         :return: :raise AttributeError:
         """
         if item not in ['yaml_dict', 'file_path'] and not item[0] == "_":
-            ret = self.create_sub_obj(item)
-            setattr(self, item, ret)
-            return ret
+            return self[item]
         else:
             raise AttributeError
 
@@ -54,14 +54,21 @@ class FileHolder(object):
         :type item: str - the name of the next object
         :return: a newly created object, caller is responsible for caching
         """
-        if hasattr(self, 'yaml_dict'):
-            return self.yaml_dict[item]
-        elif os.path.isfile(self.file_path + ".yaml"):
-            self.yaml_dict = yaml.load(open(self.file_path + ".yaml"))
-            return self.yaml_dict[item]
+        if self.yaml_obj:
+            return self.yaml_obj[item]
         elif os.path.isfile(os.path.join(self.file_path, item) + ".csv"):
             return pandas.DataFrame.from_csv(os.path.join(self.file_path, item) + ".csv")
         return self.next_type(item, *self.path)
+
+    @property
+    def yaml_obj(self):
+        if self._yaml_obj is not None:
+            return self._yaml_obj
+        elif os.path.isfile(self.file_path + ".yaml"):
+            self._yaml_obj = yaml.load(open(self.file_path + ".yaml"))
+            return self._yaml_obj
+        else:
+            return None
 
     @property
     def file_path(self):
@@ -82,3 +89,25 @@ class FileHolder(object):
     def __str__(self, *args, **kwargs):
         return str(self.value)
 
+    def __iter__(self):
+        if self.is_dir:
+            return (self[os.path.splitext(os.path.basename(path))[0]] for path in os.listdir(self.file_path))
+        elif self.yaml_obj is not None:
+            return iter(self.yaml_obj)
+        else:
+            return iter([]) #empty iter, we have no case for this now
+
+
+    def __len__(self):
+        if self.is_dir:
+            return len(os.listdir(self.file_path))
+        elif self.yaml_obj is not None:
+            return len(self.yaml_obj)
+        else:
+            return 0  #empty iter, we have no case for this now
+
+    def __delitem__(self, key):
+        del self._cache[key]
+
+    def __setitem__(self, key, value):
+        self._cache[key] = value

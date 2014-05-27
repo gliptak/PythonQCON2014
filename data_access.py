@@ -13,11 +13,18 @@ def get_file(coll_name):
     return FileHolder(coll_name)
 
 
-def get_live(coll_name):
-    env = FileHolder(coll_name)
-    env.fx.usd_eur = QuandlAsset("GOOG/NYSE_ERO")
-    env.fx.usd_jpy = QuandlAsset("QUANDL/USDJPY")
-    return env
+def get_live(coll_name, sys_coll):
+    if coll_name == 'market2':
+        coll = FileHolder('market1')
+        coll.etf.usd_eur = QuandlAsset("GOOG/NYSE_ERO")
+        coll.fx.usd_jpy = QuandlAsset("QUANDL/USDJPY")
+    elif coll_name == 'market3':
+        coll = FileHolder('market1')
+        for name, code in sys_coll.quandlFXCodes.items():
+            asset = QuandlAsset(code)
+            coll.fx[name] = asset
+
+    return coll
 
 
 if __name__ == "__main__":

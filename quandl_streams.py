@@ -19,6 +19,8 @@ class QuandlAsset(object):
         """Redirect any unknown attribute access to the data retrieved from Quandl, this constitutes a complete proxy
         """
         return getattr(self.value, item)
+    def __len__(self):
+        return len(self.value)
 
     @property
     def value(self):
