@@ -19,8 +19,8 @@ if __name__ == "__main__":
     from data_access import get_live, get_file, get_dummy
 
     dummyCollection = get_dummy("test")
-    baseVol = dummyCollection['fx']["usd_eur"]['Volume']['2010-05-14']
-    point_tweak(dummyCollection, 'fx[usd_eur].Volume', '2010-05-14', add, .001)
-    tweakedVol = dummyCollection['fx']["usd_eur"]['Volume']['2010-05-14']
+    baseVol = dummyCollection['fx']["usd_eur"]['High (est)']['2010-05-14']
+    tweakedCollection = point_tweak(dummyCollection, 'fx.usd_eur.High (est)', '2010-05-14', add, .001)
+    tweakedVol = tweakedCollection['fx']["usd_eur"]['High (est)']['2010-05-14']
     print(baseVol, tweakedVol)
-    print(repr(dummyCollection))
+    print(repr(tweakedCollection))
